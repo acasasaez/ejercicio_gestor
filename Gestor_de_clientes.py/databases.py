@@ -1,3 +1,8 @@
+import csv
+import os
+import re
+import configparser
+config = configparser.ConfigParser()
 class Cliente (): 
 
     def __init__(self, nombre, apellido, dni):
@@ -11,48 +16,46 @@ class Cliente ():
 #preguntar por qué no se me crea el picache
 
 class Clientes ():
+    lista = []
+    with open(config.DATABASE_PATH, newline='\n') as fichero:
+        reader = csv.reader(fichero, delimiter=';')
+        for dni, nombre, apellido in reader:
+            cliente = Cliente(dni, nombre, apellido)
+            lista.append(cliente)
 
-    def __init__(self):
-        self.clientes = []
-
-    def agregar_cliente(self, cliente):
-        self.clientes.append(cliente)
-
-    def mostrar_clientes(self):
-        for cliente in self.clientes:
-            print(cliente)
-
-    def buscar_cliente(self, dni):
-        for cliente in self.clientes:
+    @staticmethod
+    def buscar(dni):
+        for cliente in Clientes.lista:
             if cliente.dni == dni:
                 return cliente
-        return None
 
-    def eliminar_cliente(self, dni):
-        cliente = self.buscar_cliente(dni)
-        if cliente:
-            self.clientes.remove(cliente)
-            return True
-        return False
+    @staticmethod
+    def crear(dni, nombre, apellido):
+        cliente = Cliente(dni, nombre, apellido)
+        Clientes.lista.append(cliente)
+        Clientes.guardar()
+        return cliente
 
-    def modificar_cliente(self, dni, nombre, apellido):
-        cliente = self.buscar_cliente(dni)
-        if cliente:
-            cliente.nombre = nombre
-            cliente.apellido = apellido
-            return True
-        return False
+    @staticmethod
+    def modificar(dni, nombre, apellido):
+        for indice, cliente in enumerate(Clientes.lista):
+            if cliente.dni == dni:
+                Clientes.lista[indice].nombre = nombre
+                Clientes.lista[indice].apellido = apellido
+                Clientes.guardar()
+                return Clientes.lista[indice]
 
-    def guardar_clientes(self):
-        with open('clientes.txt', 'w') as f:
-            for cliente in self.clientes:
-                f.write(f'{cliente.nombre},{cliente.apellido},{cliente.dni}
+    @staticmethod
+    def borrar(dni):
+        for indice, cliente in enumerate(Clientes.lista):
+            if cliente.dni == dni:
+                cliente = Clientes.lista.pop(indice)
+                Clientes.guardar()
+                return cliente
 
-')
-
-    def cargar_clientes(self):
-        with open('clientes.txt', 'r') as f:
-            for linea in f:
-                datos = linea.strip().split(',')
-                cliente = Cliente(datos[0], datos[1], datos[2])
-                self.clientes.append(cliente)
+    @staticmethod
+    def guardar():
+        with open(config.DATABASE_PATH, 'w', newline='\n') as fichero:
+            writer = csv.writer(fichero, delimiter=';')
+            for cliente in Clientes.lista:
+                writer.writerow((cliente.dni, cliente.nombre, cliente.apellido))
