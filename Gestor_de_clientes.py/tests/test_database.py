@@ -1,6 +1,6 @@
 import copy
 import unittest
-from  Gestor_de_clientes import database as db
+import databases as db
 class TestDatabase(unittest.TestCase):
     def setUp(self):
  # Se ejecuta antes de cada prueba
